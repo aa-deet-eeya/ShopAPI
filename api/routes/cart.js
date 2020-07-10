@@ -9,8 +9,13 @@ router.get('/', (req, res)=>{
 })
 
 router.post('/', (req ,res)=>{
-    res.status(200).json({
-        message : "Cart created"
+    const cart = {
+        productId : req.body.productId ,
+        quantity : req.body.quantity
+    }
+    res.status(201).json({
+        message : "Cart created" ,
+        cart : cart
     })
 })
 
