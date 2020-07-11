@@ -5,11 +5,26 @@ const mongoose = require('mongoose')
 const Product = require('../DB/Schema')
 
 router.get('/', (req, res, next)=>{
-    Product.find().exec()
+    Product.find().select('name price _id').exec()
         .then( items=>{
             console.log(items)
             if(items.length > 0) {
-                res.status(200).json(items)
+                res.status(200).json({
+                    count : items.length ,
+                    products : items.map(item=>{
+                        return {
+                            _id : item._id ,
+                            name : item.name ,
+                            price : item.price ,
+                            request : {
+                                type : "GET" ,
+                                url : `http://localhost:3000/products/${item._id}`
+                            }
+                        }
+                        
+                    }),
+                    
+                })
             } else {
                 res.status(404).json({
                     error : "DB empty"
@@ -36,7 +51,15 @@ router.post('/', (req, res, next)=>{
         console.log(item)
         res.status(201).json({
             success : true ,
-            createdProduct : item
+            createdProduct : {
+                name : item.name ,
+                price : item.price ,
+                _id : item._id 
+            } ,
+            request : {
+                type : "POST" ,
+                url : `http:localhost:3000/products/${item._id}`
+            }
         })
     }).catch(err=>{
         console.log(err)
@@ -56,13 +79,22 @@ router.post('/', (req, res, next)=>{
 router.get('/:id', (req, res, next)=>{
     const id = req.params.id
     Product.findById(id)
+        .select('name _id price')
         .exec()
         .then(item =>{
             console.log(`\nFrom DB: ${item}`)
             if (item) {
-                res.status(200).json(item)    
+                res.status(200).json({
+                    success : true ,
+                    item ,
+                    request : {
+                        type : "GET" ,
+                        url : `http:localhost:3000/products/${item._id}`
+                    }
+                })    
             } else {
                 res.status(404).json({
+                    success : false ,
                     error : "404 Not found"
                 })
             }
@@ -71,6 +103,7 @@ router.get('/:id', (req, res, next)=>{
         .catch(err=>{
             //console.log(err)
             res.status(500).json({
+                success : false ,
                 error : err
             })
         })
@@ -97,7 +130,11 @@ router.patch('/:id' , (req, res)=>{
             console.log(result)
             res.status(200).json({
                 success : true ,
-                result
+                result ,
+                request : {
+                    type : "PATCH" ,
+                    url : `http://localhost:3000/products/${id}`
+                }
             })
         })
         .catch(error=>{
