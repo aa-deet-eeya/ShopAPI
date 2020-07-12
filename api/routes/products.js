@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router() 
 const mongoose = require('mongoose')
 
-const Product = require('../DB/Schema')
+const {Product} = require('../DB/Schema')
 
 router.get('/', (req, res, next)=>{
     Product.find().select('name price _id').exec()
