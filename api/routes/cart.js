@@ -91,7 +91,15 @@ router.post('/' , (req, res)=>{
             console.log(cart) 
             res.status(200).json({
                 success : true ,
-                cart
+                Cart : cart.CartItems.map(item=>{
+                    return {
+                        quantity : item.quantity ,
+                        product : item.product ,
+                        request : {
+                            url : `http://localhost:3000/products/${item.product}`
+                        }
+                    }
+                })
             })
         })
         .catch(error=>{
@@ -104,17 +112,78 @@ router.post('/' , (req, res)=>{
 })
 
 router.get('/:CartId', (req, res)=>{
-    res.status(200).json({
-        message : "Product fetched",
-        id : req.params.productId
-    })
+    const _id = req.params.CartId
+    
+    Cart.findById(_id)
+        .select('_id CartName CartItems')
+        .exec()
+        .then(cart=>{
+            
+            if(cart) {
+                res.status(200).json({
+                    success :true ,
+                    Cart : {
+                        _id : cart._id ,
+                        CartName : cart.CartName ,
+                        CartItems : cart.CartItems.map(item=>{
+                            return {
+                                quantity : item.quantity ,
+                                product : item.product ,
+                                request : {
+                                    url : `http://localhost:300/products/${item.quantity}`
+                                }
+                            }
+                        }) ,
+                        request : {
+                            type : "GET" ,
+                            url : `http://localhost:3000/cart/${cart._id}`
+                        }
+                    }
+                })
+            } else {
+                res.status(404).json({
+                    success : false ,
+                    error : '404 Cart not found'
+                })
+            }
+        })
+        .catch(error =>{
+            res.status(500).json({
+                success : false ,
+                error
+            })
+        })
+    //if()
+    //res.status(200).json({
+    //    message : "Product fetched",
+    //    id : req.params.productId
+    //})
 })
 
-router.delete('/:CartId' , (req, res)=>{
+router.delete('/:ProductId' , (req, res)=>{
     res.status(200).json({
         message : "Product deleted from cart",
         id : req.params.productId
     })
+})
+
+router.delete('/del/:CartId' ,(req, res)=>{
+    const _id = req.params.CartId
+
+    Cart.remove({_id : _id})
+        .exec()
+        .then(result=>{
+            res.status(200).json({
+                success : true ,
+                result
+            })
+        })
+        .catch(error=>{
+            res.status(500).json({
+                success : false ,
+                error
+            })
+        })
 })
 
 

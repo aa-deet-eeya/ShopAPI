@@ -82,7 +82,7 @@ router.get('/:id', (req, res, next)=>{
         .select('name _id price')
         .exec()
         .then(item =>{
-            console.log(`\nFrom DB: ${item}`)
+            //console.log(`\nFrom DB: ${item}`)
             if (item) {
                 res.status(200).json({
                     success : true ,
