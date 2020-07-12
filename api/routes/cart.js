@@ -7,6 +7,7 @@ const {Cart, Product} = require('../DB/Schema')
 router.get('/', (req, res)=>{
     Cart.find()
         .select('_id CartName CartItems')
+        .populate('CartItems.product', '_id name price')
         .exec()
         .then(cart=>{
             console.log(cart)
@@ -83,10 +84,25 @@ router.post('/' , (req, res)=>{
         product : req.body.productId ,
         quantity : req.body.quantity
     }
-    Cart.findOneAndUpdate({_id :_id},
-    {"$push" : {"CartItems" : item } },
-    { new : true})
-        .exec()
+    Product.findById(item.product)
+        .then(product=>{
+            if(!product) {
+                res.status(404).json({
+                    success : false ,
+                    error : `Invalid ProductId, no such product found having ${item.product} product Id`
+                })
+            }
+            return Cart.findOneAndUpdate({_id :_id},
+                {"$push" : {"CartItems" : item } },
+                { new : true}).exec()                   
+                    //.catch(error=>{
+                    //    console.log(`error : ${error}`)
+                    //    res.json({
+                    //        success : false ,
+                    //        error
+                    //    })
+                    //})
+        })
         .then(cart=>{
             console.log(cart) 
             res.status(200).json({
@@ -103,12 +119,12 @@ router.post('/' , (req, res)=>{
             })
         })
         .catch(error=>{
-            console.log(`error : ${error}`)
-            res.json({
-                success : false ,
+            res.status(500).json({
+                status : false ,
                 error
             })
         })
+    
 })
 
 router.get('/:CartId', (req, res)=>{
@@ -116,6 +132,7 @@ router.get('/:CartId', (req, res)=>{
     
     Cart.findById(_id)
         .select('_id CartName CartItems')
+        .populate('CartItems.product' , '_id price name')
         .exec()
         .then(cart=>{
             
