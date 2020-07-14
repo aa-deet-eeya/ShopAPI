@@ -1,6 +1,8 @@
 const express = require('express') 
 const router = express.Router() 
 const mongoose = require('mongoose')
+const authenticate = require('../auth/authenticate')
+const admin = require('../auth/admin')
 
 const {Product} = require('../DB/Schema')
 
@@ -40,7 +42,7 @@ router.get('/', (req, res, next)=>{
 }) 
 
 
-router.post('/', (req, res, next)=>{
+router.post('/', admin , (req, res, next)=>{
     const product = new Product({
         _id : new mongoose.Types.ObjectId() ,
         name : req.body.name ,
@@ -113,7 +115,7 @@ router.get('/:id', (req, res, next)=>{
     //})
 })
 
-router.patch('/:id' , (req, res)=>{
+router.patch('/:id', admin , (req, res)=>{
     const id = req.params.id 
     const operation = {}
     if (req.body.name) {
@@ -146,7 +148,7 @@ router.patch('/:id' , (req, res)=>{
         })
 })
 
-router.delete('/:id', (req,res)=>{
+router.delete('/:id', admin ,(req,res)=>{
     const id = req.params.id 
 
     Product.remove({_id : id}).exec()

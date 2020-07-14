@@ -8,6 +8,7 @@ require('dotenv').config()
 const productRoutes = require('./api/routes/products') 
 const cartRoutes = require('./api/routes/cart')
 const userRoutes = require('./api/routes/users')
+//const vendorRoutes = require('./api/routes/vendor')
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true ,
@@ -23,6 +24,7 @@ app.use(cors())
 app.use('/products' , productRoutes)
 app.use('/cart' , cartRoutes)
 app.use('/users' , userRoutes)
+//app.use('/admin' , vendorRoutes)
 
 app.use((req,res, next)=>{
     const error = new Error('Not found') 

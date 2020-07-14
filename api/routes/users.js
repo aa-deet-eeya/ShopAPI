@@ -4,10 +4,13 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
+const authenticate = require('../auth/authenticate')
+const admin = require('../auth/admin')
+
 const userModel = require('../DB/userSchema')
 const { route } = require('./products')
 
-router.get('/', (req, res, next) => {
+router.get('/', admin ,(req, res, next) => {
     userModel.find()
         .select('_id email')
         .exec()
@@ -58,7 +61,8 @@ router.post('/signup', (req, res, next) => {
                         const user = new userModel({
                             _id: new mongoose.Types.ObjectId(),
                             email: req.body.email,
-                            password: hash
+                            password: hash ,
+                            permission : (req.body.perms===1)? 1 : 0
                         })
 
                         user.save()
@@ -116,12 +120,17 @@ router.post('/login', (req, res, next) => {
                             message: "Authorization failed"
                         })
                     } else if (result) {
+                        if(user.permission === 1) {
+                            tokenKey = process.env.JWT_ADMIN
+                        } else {
+                            tokenKey = process.env.JWT_KEY
+                        }
                         const token = jwt.sign(
                         {
                             email : user.email ,
                             userId : user._id
                         }, 
-                        process.env.JWT_KEY,
+                        tokenKey,
                         {
                             expiresIn : "2h"
                         })
@@ -149,7 +158,7 @@ router.post('/login', (req, res, next) => {
         })
 })
 
-router.get('/:userId', (req, res, next) => {
+router.get('/:userId', admin , (req, res, next) => {
     userModel.findById(req.params.userId)
         .select('_id email')
         .exec()
@@ -183,7 +192,7 @@ router.get('/:userId', (req, res, next) => {
 })
 
 
-router.delete('/:userId', (req, res, next) => {
+router.delete('/:userId', admin ,(req, res, next) => {
     userModel.remove({ _id: req.params.userId })
         .exec()
         .then(result => {

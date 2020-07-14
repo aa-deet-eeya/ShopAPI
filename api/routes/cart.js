@@ -2,9 +2,12 @@ const express = require('express')
 const router = express.Router() 
 const mongoose = require('mongoose')
 
+const admin = require('../auth/admin')
+const authenticate = require('../auth/authenticate')
+
 const {Cart, Product} = require('../DB/Schema')
 
-router.get('/', (req, res)=>{
+router.get('/', admin ,(req, res)=>{
     Cart.find()
         .select('_id CartName CartItems')
         .populate('CartItems.product', '_id name price')
@@ -47,7 +50,7 @@ router.get('/', (req, res)=>{
     //})
 })
 
-router.post('/new', (req, res)=>{
+router.post('/new', authenticate ,(req, res)=>{
     const _id = new mongoose.Types.ObjectId
     const cart = new Cart({
         _id : _id ,
@@ -78,7 +81,7 @@ router.post('/new', (req, res)=>{
         })
 })
 
-router.post('/' , (req, res)=>{
+router.post('/' , authenticate ,(req, res)=>{
     const _id = req.body._id 
     const item = {
         product : req.body.productId ,
@@ -127,7 +130,7 @@ router.post('/' , (req, res)=>{
     
 })
 
-router.get('/:CartId', (req, res)=>{
+router.get('/:CartId', authenticate , (req, res)=>{
     const _id = req.params.CartId
     
     Cart.findById(_id)
@@ -177,14 +180,14 @@ router.get('/:CartId', (req, res)=>{
     //})
 })
 
-router.delete('/:ProductId' , (req, res)=>{
+router.delete('/:ProductId' , authenticate , (req, res)=>{
     res.status(200).json({
         message : "Product deleted from cart",
         id : req.params.productId
     })
 })
 
-router.delete('/del/:CartId' ,(req, res)=>{
+router.delete('/del/:CartId' , admin ,(req, res)=>{
     const _id = req.params.CartId
 
     Cart.remove({_id : _id})
